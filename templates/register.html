@@ -157,9 +157,16 @@
         <a href="/login" class="back-link"><i>&larr;</i> Back to Login</a>
         <h2>Create Account</h2>
         <p class="form-text">Fill the form below to create a free account.</p>
-
-        <form method="POST" action="/register">
-          <input type="text" name="fullname" class="form-control" placeholder="Full Name" required />
+         {% with messages = get_flashed_messages() %}
+           {% if messages %}
+              <div class ="alert alert-info alert-dismissible fade show" role="alert">
+              {{ messages[0] }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endif %}
+          {% endwith %}
+          <form method="POST" action="/register">
+          <input type="text" name="full_name" class="form-control" placeholder="Full Name" required />
           <input type="email" name="email" class="form-control" placeholder="Email" required />
           <input type="password" name="password" class="form-control" placeholder="Password" required />
           <input type="password" name="confirm_password" class="form-control" placeholder="Confirm Password" required />

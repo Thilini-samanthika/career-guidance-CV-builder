@@ -3,9 +3,15 @@ from flask_dance.contrib.google import make_google_blueprint, google
 from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail,Message
+from models import db,User
+import random
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
+
+app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 
 # OAuth Blueprints
 google_bp = make_google_blueprint(
@@ -18,6 +24,7 @@ app.register_blueprint(google_bp, url_prefix="/login")
 facebook_bp = make_facebook_blueprint(
     client_id="YOUR_FACEBOOK_APP_ID",
     client_secret="YOUR_FACEBOOK_APP_SECRET",
+    scope=["email"],
     redirect_to="facebook_login"
 )
 app.register_blueprint(facebook_bp, url_prefix="/login")
@@ -30,8 +37,8 @@ cv_storage = {}
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT']= 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your_email@gmail.com'
-app.config['MAIL_PASSWORD'] = 'your_app_password'
+app.config['MAIL_USERNAME'] = 'thilinisadu12345@gmail.com'
+app.config['MAIL_PASSWORD'] = 'rkmkvjncbdanjobt'
 
 mail = Mail(app)
 
@@ -64,36 +71,54 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        fullname = request.form['fullname']
-        email = request.form['email']
-        password = request.form['password']
+        full_name = request.form.get('full_name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
 
-        if email in users_db:
+        if password != confirm_password:
+            flash("Passwords don't match!", "danger")
+            return redirect(url_for("register"))
+
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
             flash('Email already registered. Please login.', 'warning')
-            return redirect(url_for('login'))
+            return redirect(url_for('register'))
 
-        users_db[email] = {
-            'fullname': fullname,
-            'email': email,
-            'password': generate_password_hash(password)
-        }
+        otp = str(random.randint(100000, 999999))
+        hashed_password = generate_password_hash(password)
 
-        flash('Registration successful! Please login.', 'success')
-        return redirect(url_for('login'))
+        new_user = User(
+            full_name=full_name,
+            email=email,
+            password=hashed_password,
+            otp=otp
+        )
+        db.session.add(new_user)
+        db.session.commit()
 
+        msg = Message('Verify your Email - CV Builder',
+                      sender='your_email@gmail.com',
+                      recipients=[email])
+        msg.body = f"Hello {full_name},\n\nYour OTP code is: {otp}\n\nEnter this to verify your account."
+        mail.send(msg)
+
+        flash("OTP sent to your email. Please verify to continue.", "success")
+        return redirect(url_for("verify"))
     return render_template('register.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-
+ 
         user = users_db.get(email)
         if user and check_password_hash(user['password'], password):
             session['user_email'] = user['email']
-            session['user_name'] = user['fullname']
-            flash(f'Welcome, {user["fullname"]}!', 'success')
+            session['user_name'] = user['full_name']
+            flash(f'Welcome, {user["full_name"]}!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password.', 'danger')
@@ -162,8 +187,11 @@ def dashboard():
     if 'user_email' not in session:
         flash("Please login to access the dashboard.", "warning")
         return redirect(url_for('login'))
+    user_email = session.get('user_name','User')
+    
 
-    return render_template('dashboard.html', user_name=session['user_name'])
+    return render_template('dashboard.html', user_name=session.get("user_name"),job_suggestins=job_suggestins)
+
 
 @app.route('/build_cv', methods=['GET'])
 def build_cv():
@@ -202,6 +230,24 @@ def logout():
 @app.route('/reset-password/<token>', methods=['GET','POST'])
 def reset_password(token):
     return f'This is a reset page.Token: {token}'
+
+@app.route('/verify',methods=['GET', 'POST'])
+def verify():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        otp_entered = request.form.get('otp')
+        user = User.query.filter_by(email=email).first()
+        if user:
+            if user.otp == otp_entered:
+                user.otp = None
+                db.session.commit()
+                flash("Email Verified Successfully! You can now Login","success")
+                return redirect(url_for("login"))
+            else:
+                flash("Invalid OTP. Please Try Again.","danger")
+        else:
+            flash("No account found with that email.","warning")
+    return render_template('verify.html')
 
 # ------------------- MAIN ----------------------
 
