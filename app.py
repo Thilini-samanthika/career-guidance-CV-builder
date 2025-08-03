@@ -4,10 +4,14 @@ from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail,Message
 from models import db,User
+from dotenv import load_dotenv
+import os
 import random
 
+load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'
+app.secret_key =os.environ.get('SECRET_KEY')
 
 app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -15,8 +19,8 @@ db.init_app(app)
 
 # OAuth Blueprints
 google_bp = make_google_blueprint(
-    client_id="1035355435861-15ens4o1kc0sluhkvhdl0unc9htfc13q.apps.googleusercontent.com",
-    client_secret="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",
+    client_id=os.environ.get('GOOGLE_CLIENT_ID'),
+    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
     redirect_to="http://127.0.0.1:5000/login/google/authorized"
 )
 app.register_blueprint(google_bp, url_prefix="/login")
@@ -37,8 +41,8 @@ cv_storage = {}
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT']= 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'thilinisadu12345@gmail.com'
-app.config['MAIL_PASSWORD'] = 'rkmkvjncbdanjobt'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 
 mail = Mail(app)
 
