@@ -11,7 +11,8 @@ import random
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key =os.environ.get('SECRET_KEY')
+app.secret_key = os.environ.get('SECRET_KEY')
+print("SECRET_KEY loaded:", app.secret_key)
 
 app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

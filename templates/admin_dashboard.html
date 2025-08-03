@@ -2,133 +2,150 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CV Builder Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(-45deg, #1c92d2, #f2fcfe, #6dd5ed, #2193b0);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-      min-height: 100vh;
-      padding: 40px 0;
+      background-color: #0d1b2a;
+      color: #fff;
     }
-
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .sidebar {
+      height: 100vh;
+      background-color: #1b263b;
+      padding-top: 20px;
+      position: fixed;
     }
-
-    .container {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      max-width: 1100px;
+    .sidebar a {
+      color: #fff;
+      text-decoration: none;
+      display: block;
+      padding: 10px 20px;
     }
-
-    h2 {
-      font-weight: 600;
-      color: #003366;
+    .sidebar a:hover {
+      background-color: #415a77;
     }
-
-    table th {
-      background-color: #f1f1f1;
-    }
-
-    .btn-primary {
-      background-color: #007bff;
+    .card {
+      background-color: #1b263b;
       border: none;
     }
-
-    .chart-container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
+    .card h4, .card h6 {
+      color: #fff;
     }
-
-    .table-container {
-      background: #fff;
+    .content {
+      margin-left: 220px;
       padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .table thead {
+      color: #fff;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <h2 class="text-center mb-4">Welcome, Admin</h2>
+<div class="sidebar">
+  <h3 class="text-center">CV Builder</h3>
+  <a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+  <a href="#"><i class="fas fa-users"></i> Users</a>
+  <a href="#"><i class="fas fa-file-alt"></i> CV Templates</a>
+  <a href="#"><i class="fas fa-chart-line"></i> Analytics</a>
+  <a href="#"><i class="fas fa-cog"></i> Settings</a>
+  <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+</div>
 
-    <div class="chart-container">
-      <canvas id="userChart" height="100"></canvas>
+<div class="content">
+  <h2>Dashboard Overview</h2>
+  <div class="row g-4 my-3">
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <h4>Total Users</h4>
+        <h2 id="usersCount">9526</h2>
+        <small class="text-success">+4.2%</small>
+      </div>
     </div>
-    <div class="table-container">
-      <h4>Registered Users</h4>
-      <table class="table table-bordered mt-3">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users %}
-          <tr>
-            <td>{{ user.fullname }}</td>
-            <td>{{ user.email }}</td>
-            <td>
-              {% if user.email in cv_storage %}
-              <a href="{{ url_for('cv_preview', email=user.email) }}" class="btn btn-sm btn-primary">Preview CV</a>
-              {% else %}
-              <span class="text-muted">No CV</span>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <h4>CVs Generated</h4>
+        <h2 id="cvsGenerated">8323</h2>
+        <small class="text-success">+1.2%</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <h4>Visitors</h4>
+        <h2 id="visitors">6200</h2>
+        <small class="text-success">+5.2%</small>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center p-3">
+        <h4>Messages</h4>
+        <h2 id="messages">5630</h2>
+        <small class="text-success">+2.2%</small>
+      </div>
     </div>
   </div>
-  <script>
-    const chartData = JSON.parse('{{ chart_data | tojson | safe }}');
-    const ctx = document.getElementById('userChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: chartData.labels,
-        datasets: [{
-          label: 'Users by Registration',
-          data: chartData.data,
-          backgroundColor: 'rgba(54, 162, 235, 0.7)',
-          borderRadius: 5
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1
-            }
-          }
-        }
-      }
-    });
-  </script>
+
+  <!-- Chart Area -->
+  <div class="card p-4 mt-4">
+    <h4>Site Traffic Overview</h4>
+    <canvas id="trafficChart"></canvas>
+  </div>
+
+  <!-- Recent Orders Table -->
+  <div class="card p-4 mt-4">
+    <h4>Recent CV Downloads</h4>
+    <table class="table table-dark table-striped mt-3">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Template</th>
+          <th>Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="cvTable">
+        <tr>
+          <td>John Doe</td>
+          <td>Modern Template</td>
+          <td>2025-08-01</td>
+          <td>Downloaded</td>
+        </tr>
+        <tr>
+          <td>Jane Smith</td>
+          <td>Classic Template</td>
+          <td>2025-08-02</td>
+          <td>Downloaded</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Traffic Chart Data
+  const ctx = document.getElementById('trafficChart').getContext('2d');
+  const trafficChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'],
+      datasets: [{
+        label: 'Visitors',
+        data: [4,8,6,12,9,11,7,10,8,6],
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        fill: true
+      }]
+    }
+  });
+
+  // Example: Dynamic Data Update (You can replace this with data from your backend)
+  document.getElementById('usersCount').innerText = 10000;
+  document.getElementById('cvsGenerated').innerText = 9000;
+</script>
 
 </body>
 </html>
