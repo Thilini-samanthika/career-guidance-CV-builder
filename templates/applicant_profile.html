@@ -1,0 +1,8 @@
+<!doctype html>
+<h2>{{ applicant.full_name }}</h2>
+<p>{{ applicant.email }}</p>
+{% if applicant.cv_file %}
+  <a href="{{ url_for('jobs.download_cv', applicant_id=applicant.id) }}">Download CV</a>
+{% else %}
+  <p>No CV</p>
+{% endif %}
