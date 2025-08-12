@@ -1,8 +1,0 @@
-<!doctype html>
-<h2>Your jobs</h2>
-<ul>
-  {% for j in jobs %}
-    <li>{{ j.title }} - <a href="{{ url_for('jobs.view_applicants', job_id=j.id) }}">Applicants</a></li>
-  {% endfor %}
-</ul>
-<a href="{{ url_for('jobs.new_job') }}">New Job</a>
